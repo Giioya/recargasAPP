@@ -13,7 +13,6 @@ export const SignIn = () => {
   } else {
     return (
       <>
-        Not signed in <br />
         <button onClick={() => signIn()}>Sign in</button>
       </>
     );
