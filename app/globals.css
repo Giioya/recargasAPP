@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 200, 200, 200;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 255, 255, 255;
+    --background-end-rgb: 200, 200, 200;
+  }
+}
+
+
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+
+.container {
+  text-align: center;
+  padding: 20px;
+}
+
+.title {
+  font-size: 1.8rem;
+  margin-bottom: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  max-width: 400px;
+  width: 100%;
+  margin: auto;
+}
+
+.card {
+  background-color: #f0f0f0;
+  border: none;
+  padding: 40px; /* Aumentamos el padding */
+  font-size: 1.5rem; /* Texto más grande */
+  font-weight: bold;
+  text-align: center;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+  width: 180px; /* Ajustamos el ancho */
+  height: 180px; /* Ajustamos la altura */
+}
+
+.card:hover {
+  background-color: #e0e0e0;
+}
+
+.image {
+  width: 80px; 
+  height: 80px; 
+  margin-bottom: 10px;
+  border-radius: 15px;
+}
