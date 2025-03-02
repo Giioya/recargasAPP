@@ -32,11 +32,9 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Aplicamos clases al botón de SignIn */}
-      <div className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-700 transition inline-block">
-        <SignIn />
-      </div>
-
+        <div className="flex justify-center mt-4">
+          <SignIn />
+        </div>
     </div>
   );
 }
