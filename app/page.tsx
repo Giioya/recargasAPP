@@ -58,7 +58,7 @@ export default function Home() {
       if (verifyData.status === "success" && verifyData.isValid) {
         setWalletAddress(MiniKit.walletAddress ?? "Dirección no disponible");
         setUsername(MiniKit.user?.username ?? "Usuario desconocido");
-        setProfilePic(MiniKit.user?.profilePic ?? null);
+        setProfilePic(MiniKit.user?.profilePictureUrl ?? null);
       }
     } catch (error) {
       console.error("Error en la autenticación:", error);
