@@ -46,7 +46,9 @@ export default function WalletAuth() {
         if (verifyData.status === "success" && verifyData.isValid) {
             const wallet = MiniKit.walletAddress;
             setWalletAddress(wallet ?? "Dirección no disponible");
-            setUsername(finalPayload.address ?? "Usuario desconocido");
+
+            // Intento de obtener el nombre de usuario
+            setUsername(verifyData.user?.username ?? "Usuario desconocido");
 
             // Intento alternativo para obtener el saldo en WLD
             const balanceRes = await fetch(`/api/get-balance?address=${wallet}`);
@@ -78,3 +80,4 @@ export default function WalletAuth() {
         </div>
     );
 }
+
