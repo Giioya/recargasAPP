@@ -1,12 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MiniKit } from "@worldcoin/minikit-js";
 
 export default function WalletAuth() {
     const [walletAddress, setWalletAddress] = useState<string | null>(null);
     const [username, setUsername] = useState<string | null>(null);
     const [wldBalance, setWldBalance] = useState<number | null>(null);
+
+    useEffect(() => {
+        signInWithWallet();
+    }, []); // Se ejecuta una vez al montar el componente
 
     const signInWithWallet = async () => {
         if (!MiniKit.isInstalled()) {
@@ -43,15 +47,14 @@ export default function WalletAuth() {
         });
 
         const verifyData = await verifyRes.json();
-        if (verifyData.status === "success" && verifyData.isValid) {
-            const wallet = MiniKit.walletAddress;
-            setWalletAddress(wallet ?? "Dirección no disponible");
+        console.log("Verificación de datos:", verifyData); // Para ver qué propiedades tiene
 
-            // Intento de obtener el nombre de usuario
+        if (verifyData.status === "success" && verifyData.isValid) {
+            setWalletAddress(MiniKit.walletAddress ?? "Dirección no disponible");
             setUsername(verifyData.user?.username ?? "Usuario desconocido");
 
-            // Intento alternativo para obtener el saldo en WLD
-            const balanceRes = await fetch(`/api/get-balance?address=${wallet}`);
+            // Obtener saldo en WLD
+            const balanceRes = await fetch(`/api/get-balance?address=${MiniKit.walletAddress}`);
             const balanceData = await balanceRes.json();
             setWldBalance(balanceData.balance ?? 0);
         }
