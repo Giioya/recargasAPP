@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import "./globals.css";
-import { VerifyBlock } from "@/components/Verify";
+import { SignIn } from "@/components/SignIn";
 
 const operadores = [
   { nombre: "Movistar", img: "/movistar.jpg" },
@@ -33,7 +33,7 @@ export default function Home() {
       </div>
 
       <div className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-700 transition inline-block">
-        <VerifyBlock />
+        <SignIn />
       </div>
 
     </div>
