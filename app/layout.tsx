@@ -21,7 +21,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <NextAuthProvider>
-          <ErudaProvider> {/* ✅ Envolvemos los children en ErudaProvider */}
+          <ErudaProvider> {}
             <MiniKitProvider>{children}</MiniKitProvider>
           </ErudaProvider>
         </NextAuthProvider>

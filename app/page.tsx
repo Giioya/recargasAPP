@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import "./globals.css";
-import WalletAuth from "@/components/wallet/page";
+import { useWalletAuth } from "@/components/wallet/page";
 
 const operadores = [
   { nombre: "Movistar", img: "/movistar.jpg" },
@@ -14,6 +14,8 @@ const operadores = [
 ];
 
 export default function Home() {
+  const { walletAddress, username, balance, signInWithWallet } = useWalletAuth();
+
   return (
     <div className="container flex flex-col items-center justify-center min-h-screen p-4">
       <h2 className="text-2xl font-bold mb-4">Elige operador</h2>
@@ -26,11 +28,25 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Componente de autenticación con Wallet */}
-      <WalletAuth />
+      <div className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-700 transition inline-block">
+        <button onClick={signInWithWallet}>Iniciar sesión con Ethereum</button>
+      </div>
+
+      {walletAddress && (
+        <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-md text-center">
+          <p><strong>Dirección de Wallet:</strong> {walletAddress}</p>
+          <p><strong>Usuario:</strong> {username}</p>
+          {balance !== null ? (
+            <p><strong>Saldo en WLD:</strong> {balance} WLD</p>
+          ) : (
+            <p>Cargando saldo...</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
+
 
 
 
