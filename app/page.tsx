@@ -14,7 +14,7 @@ const operadores = [
 ];
 
 export default function Home() {
-  const { walletAddress, username, signInWithWallet } = useWalletAuth();
+  const { walletAddress, username, balance, signInWithWallet } = useWalletAuth();
 
   return (
     <div className="container flex flex-col items-center justify-center min-h-screen p-4">
@@ -36,11 +36,17 @@ export default function Home() {
         <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-md text-center">
           <p><strong>Dirección de Wallet:</strong> {walletAddress}</p>
           <p><strong>Usuario:</strong> {username}</p>
+          {balance !== null ? (
+            <p><strong>Saldo en WLD:</strong> {balance} WLD</p>
+          ) : (
+            <p>Cargando saldo...</p>
+          )}
         </div>
       )}
     </div>
   );
 }
+
 
 
 
