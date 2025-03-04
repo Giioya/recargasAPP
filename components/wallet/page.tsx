@@ -5,8 +5,7 @@ import { MiniKit } from "@worldcoin/minikit-js";
 
 export function useWalletAuth() {
     const [walletAddress, setWalletAddress] = useState<string | null>(null);
-    const [username, setUsername] = useState<string | null>(null);
-    const [balance, setBalance] = useState<number | null>(null); // Agregar balance
+    const [balance, setBalance] = useState<number | null>(null);
 
     const signInWithWallet = async () => {
         if (!MiniKit.isInstalled()) {
@@ -31,26 +30,12 @@ export function useWalletAuth() {
             return;
         }
 
-        const verifyRes = await fetch("/api/complete-siwe", {
-            method: "POST",
-            headers: {
-            "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-            payload: finalPayload,
-            nonce,
-            }),
-        });
+        // Extraer dirección de wallet
+        const wallet = finalPayload.address ?? "Dirección no disponible";
+        setWalletAddress(wallet);
 
-        const verifyData = await verifyRes.json();
-        if (verifyData.status === "success" && verifyData.isValid) {
-            const wallet = MiniKit.walletAddress ?? "Dirección no disponible";
-            setWalletAddress(wallet);
-            setUsername(MiniKit.user?.username ?? "Usuario desconocido");
-
-            // Obtener saldo en WLD después de autenticarse
-            await fetchBalance(wallet);
-        }
+        // Obtener saldo en WLD
+        await fetchBalance(wallet);
         } catch (error) {
         console.error("Error en la autenticación:", error);
         alert("Hubo un problema con la autenticación.");
@@ -59,15 +44,19 @@ export function useWalletAuth() {
 
     const fetchBalance = async (wallet: string) => {
         try {
-        const res = await fetch(`/api/balance?wallet=${wallet}`);
-        const { balance } = await res.json();
-        setBalance(balance);
+        const response = await fetch(`https://blockchain-api-url.com/balance?wallet=${wallet}`);
+        const data = await response.json();
+        
+        // Buscar el saldo en WLD dentro de la respuesta
+        const wldBalance = data.tokens.find((token: any) => token.symbol === "WLD")?.balance ?? 0;
+        
+        setBalance(wldBalance);
         } catch (error) {
         console.error("Error al obtener saldo:", error);
         setBalance(null);
         }
     };
 
-    return { walletAddress, username, balance, signInWithWallet };
+    return { walletAddress, balance, signInWithWallet };
 }
 
