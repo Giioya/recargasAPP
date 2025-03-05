@@ -1,21 +1,18 @@
-"use client";
-
 import { useState } from "react";
 import { MiniKit } from "@worldcoin/minikit-js";
 
 export function useWalletAuth() {
     const [walletAddress, setWalletAddress] = useState<string | null>(null);
     const [username, setUsername] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(false); // Estado de carga
+    const [isLoading, setIsLoading] = useState(false);
 
     const signInWithWallet = async () => {
-        if (!MiniKit.isInstalled()) {
-            alert("MiniKit no está instalado.");
-            return;
-        }
-
+        setIsLoading(true);
         try {
-            setIsLoading(true); // Activamos el estado de carga
+            if (!MiniKit.isInstalled()) {
+                alert("MiniKit no está instalado.");
+                return;
+            }
 
             const res = await fetch(`/api/nonce`);
             const { nonce } = await res.json();
@@ -30,19 +27,13 @@ export function useWalletAuth() {
 
             if (finalPayload.status === "error") {
                 alert("Error en la autenticación.");
-                setIsLoading(false);
                 return;
             }
 
             const verifyRes = await fetch("/api/complete-siwe", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    payload: finalPayload,
-                    nonce,
-                }),
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ payload: finalPayload, nonce }),
             });
 
             const verifyData = await verifyRes.json();
@@ -54,12 +45,13 @@ export function useWalletAuth() {
             console.error("Error en la autenticación:", error);
             alert("Hubo un problema con la autenticación.");
         } finally {
-            setIsLoading(false); // Desactivamos el estado de carga
+            setIsLoading(false);
         }
     };
 
     return { walletAddress, username, signInWithWallet, isLoading };
 }
+
 
 
 
