@@ -3,7 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import MiniKitProvider from "@/components/minikit-provider";
 import NextAuthProvider from "@/components/next-auth-provider";
-import { ErudaProvider } from "@/components/Eruda"; // ✅ Importa el ErudaProvider
+import { ErudaProvider } from "@/components/Eruda";
+import AuthGuard from "@/components/AuthGuard"; // ✅ Importamos AuthGuard
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,19 +15,21 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
       <body className={inter.className}>
         <NextAuthProvider>
-          <ErudaProvider> {}
-            <MiniKitProvider>{children}</MiniKitProvider>
+          <ErudaProvider>
+            <MiniKitProvider>
+              <AuthGuard>{children}</AuthGuard> {/* 🔥 Protege la app */}
+            </MiniKitProvider>
           </ErudaProvider>
         </NextAuthProvider>
       </body>
     </html>
   );
 }
+
+
 
