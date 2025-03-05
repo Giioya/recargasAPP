@@ -1,140 +1,116 @@
 import { MiniAppPaymentSuccessPayload } from "@worldcoin/minikit-js";
-import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import { supabase } from '../../lib/supabase';
 
-// Función para inicializar la base de datos
-const initializeDB = async () => {
-    const db = await open({
-        filename: './database.db',
-        driver: sqlite3.Database
-    });
-
-    // Crear tabla si no existe
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS transacciones (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre_completo TEXT,
-            telefono_nequi TEXT,
-            cedula TEXT,
-            tipo_cuenta TEXT,
-            moneda_a_enviar TEXT,
-            dinero_a_recibir TEXT,
-            metodo_pago TEXT,
-            fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            transactionId TEXT,
-            transactionHash TEXT,
-            transactionStatus TEXT,
-            reference TEXT,
-            miniappId TEXT,
-            updatedAt TEXT,
-            network TEXT,
-            fromWalletAddress TEXT,
-            recipientAddress TEXT,
-            inputToken TEXT,
-            inputTokenAmount TEXT
-        )
-    `);
-
-    return db;
+// Función para parsear cookies
+const parseCookies = (cookieHeader: string | undefined) => {
+    const cookies: { [key: string]: string } = {};
+    if (cookieHeader) {
+        cookieHeader.split(';').forEach((cookie) => {
+            const [key, value] = cookie.split('=');
+            cookies[key.trim()] = decodeURIComponent(value);
+        });
+    }
+    return cookies;
 };
 
 interface IRequestPayload {
     payload: MiniAppPaymentSuccessPayload;
 }
 
-export async function POST(req: NextRequest) {
-    const { payload } = (await req.json()) as IRequestPayload;
+export async function POST(req: NextRequest): Promise<NextResponse> {
+    try {
+        const { payload } = (await req.json()) as IRequestPayload;
 
-    console.log("Datos recibidos en confirm-payment:", payload);
+        console.log("Datos recibidos en confirm-payment:", payload);
 
-    const cookieStore = await cookies(); // Esperar a que la promesa se resuelva
-    const reference = cookieStore.get("payment-nonce")?.value;
+        // Obtener cookies de los headers
+        const cookieHeader = req.headers.get("cookie") ?? undefined;
+        const cookies = parseCookies(cookieHeader);
 
-    console.log("Referencia en la cookie:", reference);
-    console.log("Referencia en el payload:", payload.reference);
+        const reference = cookies["payment-nonce"];
 
-    // Recuperar datos de las cookies
-    const nombre_completo = cookieStore.get("nombre_completo")?.value || null;
-    const telefono_nequi = cookieStore.get("telefono_nequi")?.value || null;
-    const cedula = cookieStore.get("cedula")?.value || null;
-    const tipo_cuenta = cookieStore.get("tipo_cuenta")?.value || null;
-    const moneda_a_enviar = cookieStore.get("moneda_a_enviar")?.value || null;
-    const dinero_a_recibir = cookieStore.get("dinero_a_recibir")?.value || null;
-    const metodo_pago = cookieStore.get("metodo_pago")?.value || null;
+        console.log("Referencia en la cookie:", reference);
+        console.log("Referencia en el payload:", payload.reference);
 
-    if (!reference) {
-        return NextResponse.json({ success: false });
-    }
+        // Recuperar datos de las cookies
+        const nombre_completo = cookies["nombre_completo"] || null;
+        const telefono_nequi = cookies["telefono_nequi"] || null;
+        const cedula = cookies["cedula"] || null;
+        const tipo_cuenta = cookies["tipo_cuenta"] || null;
+        const moneda_a_enviar = cookies["moneda_a_enviar"] || null;
+        const dinero_a_recibir = cookies["dinero_a_recibir"] || null;
+        const metodo_pago = cookies["metodo_pago"] || null;
 
-    // Verificamos que la transacción sea la misma
-    if (payload.reference === reference) {
-        const response = await fetch(
-            `https://developer.worldcoin.org/api/v2/minikit/transaction/${payload.transaction_id}?app_id=${process.env.APP_ID}`,
-            {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${process.env.DEV_PORTAL_API_KEY}`,
-                },
-            }
-        );
-
-        const transaction = await response.json();
-        console.log("Respuesta de la API de Worldcoin:", transaction);
-
-        // Si la transacción no falló, guardamos los detalles
-        if (transaction.reference == reference && transaction.status != "failed") {
-            const db = await initializeDB();
-
-            await db.run(`
-                INSERT INTO transacciones (
-                    nombre_completo,
-                    telefono_nequi,
-                    cedula,
-                    tipo_cuenta,
-                    moneda_a_enviar,
-                    dinero_a_recibir,
-                    metodo_pago,
-                    transactionId,
-                    transactionHash,
-                    transactionStatus,
-                    reference,
-                    miniappId,
-                    updatedAt,
-                    network,
-                    fromWalletAddress,
-                    recipientAddress,
-                    inputToken,
-                    inputTokenAmount
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `, [
-                nombre_completo,                   // nombre_completo desde las cookies
-                telefono_nequi,                    // telefono_nequi desde las cookies
-                cedula,                            // cedula desde las cookies
-                tipo_cuenta,                       // tipo_cuenta desde las cookies
-                moneda_a_enviar,                   // moneda_a_enviar desde las cookies
-                dinero_a_recibir,                  // dinero_a_recibir desde las cookies
-                metodo_pago,                       // metodo_pago desde las cookies
-                transaction.transaction_id,
-                transaction.transactionHash,
-                transaction.status,
-                transaction.reference,
-                transaction.miniappId,
-                transaction.updatedAt,
-                transaction.network,
-                transaction.fromWalletAddress,
-                transaction.recipientAddress,
-                transaction.inputToken,
-                transaction.inputTokenAmount
-            ]);
-
-            return NextResponse.json({ success: true });
-        } else {
-            return NextResponse.json({ success: false });
+        if (!reference) {
+            console.log("No se encontró la referencia en las cookies.");
+            return NextResponse.json({ success: false, message: "Referencia no encontrada" });
         }
+
+        // Verificamos que la transacción sea la misma
+        if (payload.reference === reference) {
+            const response = await fetch(
+                `https://developer.worldcoin.org/api/v2/minikit/transaction/${payload.transaction_id}?app_id=${process.env.APP_ID}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${process.env.DEV_PORTAL_API_KEY}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                console.error("Error al obtener datos de Worldcoin:", response.statusText);
+                return NextResponse.json({ success: false, message: "Error en la API de Worldcoin" });
+            }
+
+            const transaction = await response.json();
+            console.log("Respuesta de la API de Worldcoin:", transaction);
+
+            // Si la transacción no falló, guardamos los detalles en Supabase
+            if (transaction.reference == reference && transaction.status !== "failed") {
+                const { data, error } = await supabase
+                    .from('transacciones') // Nombre de la tabla en Supabase
+                    .insert([{
+                        nombre_completo,
+                        telefono_nequi,
+                        cedula,
+                        tipo_cuenta,
+                        moneda_a_enviar,
+                        dinero_a_recibir,
+                        metodo_pago,
+                        transaction_id: transaction.transactionId, // Asegúrate de que esto coincida
+                        transaction_hash: transaction.transactionHash, // Asegúrate de que esto esté bien
+                        transaction_status: transaction.transactionStatus, // Asegúrate de que esto coincida
+                        reference: transaction.reference,
+                        miniapp_id: transaction.miniappId,
+                        updated_at: transaction.updatedAt,
+                        network: transaction.network,
+                        from_wallet_address: transaction.fromWalletAddress, // Asegúrate de que no sea null o undefined
+                        recipient_address: transaction.recipientAddress, // Asegúrate de que no sea null o undefined
+                        input_token: transaction.inputToken,
+                        input_token_amount: transaction.inputTokenAmount
+                    }]);
+
+                if (error) {
+                    console.error('Error al guardar en Supabase:', error);
+                    return NextResponse.json({ success: false, message: "Error al guardar en Supabase" });
+                }
+
+                console.log("Datos guardados en Supabase:", data);
+                return NextResponse.json({ success: true, message: "Transacción exitosa" });
+            } else {
+                console.log("Transacción fallida o no válida.");
+                return NextResponse.json({ success: false, message: "Transacción no válida o fallida" });
+            }
+        } else {
+            console.log("Referencia no coincide.");
+            return NextResponse.json({ success: false, message: "Referencia no coincide" });
+        }
+    } catch (error) {
+        console.error("Error en confirm-payment:", error);
+        return NextResponse.json({ success: false, message: "Error en el servidor" });
     }
 }
-
 
 
