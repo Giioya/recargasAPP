@@ -4,17 +4,16 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   const uuid = crypto.randomUUID().replace(/-/g, "");
 
-  // Esperamos la resolución de cookies()
-  const cookieStore = await cookies();
+  // Crear la respuesta con la cookie
+  const response = NextResponse.json({ id: uuid });
 
-  // Guardamos la cookie correctamente
-  cookieStore.set({
-    name: "payment-nonce",
-    value: uuid,
+  // Establecer la cookie en la respuesta
+  response.cookies.set("payment-nonce", uuid, {
     httpOnly: true,
   });
 
-  console.log(uuid);
+  console.log("Valor de payment-nonce guardado:", uuid);
 
-  return NextResponse.json({ id: uuid });
+  return response;
 }
+
