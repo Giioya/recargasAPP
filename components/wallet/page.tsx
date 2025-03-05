@@ -6,7 +6,6 @@ import { MiniKit } from "@worldcoin/minikit-js";
 export function useWalletAuth() {
     const [walletAddress, setWalletAddress] = useState<string | null>(null);
     const [username, setUsername] = useState<string | null>(null);
-    const [balance, setBalance] = useState<number | null>(null); // Agregar balance
 
     const signInWithWallet = async () => {
         if (!MiniKit.isInstalled()) {
@@ -44,12 +43,8 @@ export function useWalletAuth() {
 
         const verifyData = await verifyRes.json();
         if (verifyData.status === "success" && verifyData.isValid) {
-            const wallet = MiniKit.walletAddress ?? "Dirección no disponible";
-            setWalletAddress(wallet);
+            setWalletAddress(MiniKit.walletAddress ?? "Dirección no disponible");
             setUsername(MiniKit.user?.username ?? "Usuario desconocido");
-
-            // Obtener saldo en WLD después de autenticarse
-            await fetchBalance(wallet);
         }
         } catch (error) {
         console.error("Error en la autenticación:", error);
@@ -57,18 +52,8 @@ export function useWalletAuth() {
         }
     };
 
-    const fetchBalance = async (wallet: string) => {
-        try {
-        const res = await fetch(`/api/balance?wallet=${wallet}`);
-        const { balance } = await res.json();
-        setBalance(balance);
-        } catch (error) {
-        console.error("Error al obtener saldo:", error);
-        setBalance(null);
-        }
-    };
-
-    return { walletAddress, username, balance, signInWithWallet };
+    return { walletAddress, username, signInWithWallet };
 }
+
 
 
