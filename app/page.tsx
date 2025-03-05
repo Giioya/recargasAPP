@@ -14,7 +14,7 @@ const operadores = [
 ];
 
 export default function Home() {
-  const { walletAddress, username, signInWithWallet } = useWalletAuth();
+  const { walletAddress, username, signInWithWallet, isLoading } = useWalletAuth();
 
   return (
     <div className="container flex flex-col items-center justify-center min-h-screen p-4">
@@ -32,15 +32,20 @@ export default function Home() {
         <button onClick={signInWithWallet}>Iniciar sesión con Ethereum</button>
       </div>
 
-      {walletAddress && (
-        <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-md text-center">
-          <p><strong>Dirección de Wallet:</strong> {walletAddress}</p>
-          <p><strong>Usuario:</strong> {username}</p>
-        </div>
+      {isLoading ? (
+        <p className="mt-4 text-gray-600">Cargando...</p>
+      ) : (
+        walletAddress && (
+          <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-md text-center">
+            <p><strong>Dirección de Wallet:</strong> {walletAddress}</p>
+            <p><strong>Usuario:</strong> {username}</p>
+          </div>
+        )
       )}
     </div>
   );
 }
+
 
 
 
