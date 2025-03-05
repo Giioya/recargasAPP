@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Image from 'next/image';
+import Image from "next/image";
 import "./globals.css";
 import MiniKitProvider from "@/components/minikit-provider";
 import dynamic from "next/dynamic";
 import NextAuthProvider from "@/components/next-auth-provider";
 import { FaHome, FaInfoCircle, FaHeadset } from "react-icons/fa";
-import AuthGuard from "@/components/AuthGuard"; // Ajusta la ruta según tu estructura
-
+import AuthGuard from "@/components/AuthGuard";
 
 const carga = "/images/carga_buenocambios.jpg";
 const inter = Inter({ subsets: ["latin"] });
@@ -17,17 +16,17 @@ export const metadata: Metadata = {
   description: "Gioya",
 };
 
+// 🟢 Importa el ErudaProvider con importación dinámica
+const ErudaProvider = dynamic(
+  () => import("@/components/Eruda").then((c) => c.ErudaProvider),
+  { ssr: false }
+);
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const ErudaProvider = dynamic(
-    () => import("../components/Eruda").then((c) => c.ErudaProvider),
-    {
-      ssr: false,
-    }
-  );
   return (
     <html lang="es">
       <body className={inter.className}>
@@ -38,12 +37,12 @@ export default function RootLayout({
 
         {/* Imagen de carga */}
         <div className="flex justify-center mt-4">
-          <Image 
-            src={carga} 
-            alt="Carga BuenoCambios" 
-            className="carga_bc" 
-            width={800} 
-            height={600} 
+          <Image
+            src={carga}
+            alt="Carga BuenoCambios"
+            className="carga_bc"
+            width={800}
+            height={600}
           />
         </div>
 
@@ -63,18 +62,16 @@ export default function RootLayout({
           </a>
         </footer>
 
-      {/* Proveedores de autenticación y MiniKit */}
+        {/* Proveedores de autenticación y MiniKit */}
         <NextAuthProvider>
-          <AuthGuard> {/* ✅ Protege el contenido con autenticación */}
-            <ErudaProvider>
-              <MiniKitProvider>
-                {children}
-              </MiniKitProvider>
+          <AuthGuard>
+            <ErudaProvider> {/* ✅ Ahora funciona correctamente */}
+              <MiniKitProvider>{children}</MiniKitProvider>
             </ErudaProvider>
           </AuthGuard>
         </NextAuthProvider>
-
       </body>
     </html>
   );
 }
+
