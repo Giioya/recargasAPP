@@ -25,8 +25,8 @@ export interface TransactionData {
 
 // Conectar con tu URL y la clave de la API de Supabase
 const supabase = createClient(
-  'https://hgxwaxwnsuaxaprfudqr.supabase.co', // Tu URL de Supabase
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhneHdheHduc3VheGFwcmZ1ZHFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk4MDYxNzIsImV4cCI6MjA1NTM4MjE3Mn0._g02ca8rRtMHgjeRgwY9VuHzPQimgpezcl0VdmfjWf0' // Tu public-anon-key
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_KEY!
 );
 
 export async function POST(req: Request) {

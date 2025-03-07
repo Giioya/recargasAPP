@@ -6,22 +6,23 @@ export function useWalletAuth() {
     const [username, setUsername] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Reiniciar la sesión al abrir la aplicación
-    useEffect(() => {
-        localStorage.removeItem("walletAddress");
-        localStorage.removeItem("username");
-        setWalletAddress(null);
-        setUsername(null);
-    }, []);
-
-    // Cargar datos desde localStorage después de limpiar
+    // Cargar datos desde localStorage al iniciar la app
     useEffect(() => {
         if (typeof window !== "undefined") {
             const storedWallet = localStorage.getItem("walletAddress");
             const storedUsername = localStorage.getItem("username");
 
-            if (storedWallet) setWalletAddress(storedWallet);
-            if (storedUsername) setUsername(storedUsername);
+            if (storedWallet) {
+                console.log("📌 Wallet recuperada de localStorage:", storedWallet);
+                setWalletAddress(storedWallet);
+            } else {
+                console.warn("⚠️ No se encontró wallet en localStorage.");
+            }
+
+            if (storedUsername) {
+                console.log("📌 Username recuperado de localStorage:", storedUsername);
+                setUsername(storedUsername);
+            }
         }
     }, []);
 
@@ -70,11 +71,15 @@ export function useWalletAuth() {
             if (verifyData.status === "success" && verifyData.isValid) {
                 const address = MiniKit.walletAddress ?? null;
                 if (address) {
+                    console.log("✅ Wallet obtenida de MiniKit:", address);
                     setWalletAddress(address);
                     localStorage.setItem("walletAddress", address);
+                } else {
+                    console.warn("⚠️ MiniKit no devolvió una wallet válida.");
                 }
 
                 if (MiniKit.user?.username) {
+                    console.log("✅ Username obtenido de MiniKit:", MiniKit.user.username);
                     setUsername(MiniKit.user.username);
                     localStorage.setItem("username", MiniKit.user.username);
                 }

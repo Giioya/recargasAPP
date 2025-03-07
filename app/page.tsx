@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from 'next/image';
-import { useWalletAuth } from "@/components/wallet/";  // Importa el hook de autenticación
+import { useWalletAuth } from "@/components/wallet/";
+import { getBalance } from "@/components/balance";  // Importamos la función para obtener saldo
 
 const monedaEnviarImg = "/images/wld-logo.png";  
 const dineroRecibirImg = "/images/colombia-flag.png";
@@ -24,7 +25,6 @@ const redirigirSegunMetodoPago = (
   localStorage.setItem("metodo-pago", metodoPago);
 
   setErrorMessage(null);
-
   window.location.href = `/${metodoPago}`;
 };
 
@@ -32,10 +32,24 @@ export default function Home() {
   const [cantidadWLD, setCantidadWLD] = useState<number>(0);
   const [metodoPago, setMetodoPago] = useState<string>("");
   const [dineroARecibir, setDineroARecibir] = useState<string>("");
+  const [saldoDisponible, setSaldoDisponible] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const { walletAddress, username } = useWalletAuth();  // Obtiene el usuario
+  const { walletAddress, username } = useWalletAuth();
 
+  // Obtener el saldo de la wallet
+  useEffect(() => {
+    const obtenerSaldo = async () => {
+      if (walletAddress) {
+        const saldo = await getBalance(walletAddress);
+        console.log("Saldo disponible en WLD:", saldo);
+        setSaldoDisponible(saldo);
+      }
+    };
+    obtenerSaldo();
+  }, [walletAddress]);
+
+  // Calcular el dinero a recibir en COP
   useEffect(() => {
     const actualizarValor = async (): Promise<void> => {
       if (cantidadWLD <= 0) {
@@ -54,11 +68,7 @@ export default function Home() {
         const valorConDescuento: number = valorWLDenCOP * 0.9;
         const valorTotal: number = valorConDescuento * cantidadWLD;
 
-        if (isNaN(valorTotal)) {
-          setDineroARecibir("");
-        } else {
-          setDineroARecibir(valorTotal.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
-        }
+        setDineroARecibir(valorTotal.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
       } catch (error) {
         console.error('Error al obtener el valor de WLD:', error);
         setDineroARecibir("");
@@ -84,9 +94,11 @@ export default function Home() {
 
       <div className="container">
         {/* Mensaje de bienvenida */}
-      <div className="text-center text-xl font-bold my-4">
-        {username ? `Bienvenido, ${username}` : `Bienvenido, ${walletAddress?.slice(0, 6)}...`}
-      </div>
+        <div className="text-center text-xl font-bold my-4">
+          {username ? `Bienvenido, ${username}` : `Bienvenido, ${walletAddress?.slice(0, 6)}...`}
+        </div>
+
+        {/* Input de cantidad a enviar */}
         <div className="input-group">
           <label htmlFor="moneda_a_enviar">Moneda a enviar</label>
           <div className="input-wrapper">
@@ -106,8 +118,18 @@ export default function Home() {
               placeholder="Cantidad en WLD"
             />
           </div>
+          {/* Botón "MAX" como texto subrayado */}
+          {saldoDisponible > 0 && (
+            <p 
+              className="text-blue-600 text-sm cursor-pointer underline mt-1"
+              onClick={() => setCantidadWLD(saldoDisponible)}
+            >
+              MAX ({saldoDisponible.toFixed(4)} WLD)
+            </p>
+          )}
         </div>
 
+        {/* Input de dinero a recibir */}
         <div className="input-group">
           <label htmlFor="dinero_a_recibir">Dinero a recibir</label>
           <div className="input-wrapper">
@@ -128,6 +150,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Selección de método de pago */}
         <div className="input-group">
           <label htmlFor="metodo-pago">Método de pago</label>
           <select
@@ -148,6 +171,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* Botón de continuar */}
         <div className="btn-continuar">
           <button
             onClick={() => redirigirSegunMetodoPago(setErrorMessage, { cantidadWLD, metodoPago, dineroARecibir })}
@@ -160,4 +184,5 @@ export default function Home() {
     </div>
   );
 }
+
 
